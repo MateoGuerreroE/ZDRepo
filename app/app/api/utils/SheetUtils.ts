@@ -1,4 +1,8 @@
-export function normalizeHeaders(headers: string[]): string[] {
+import { IRawCandidateData } from "../services/types/sheets";
+
+export function normalizeHeaders(
+  headers: string[]
+): (keyof IRawCandidateData)[] {
   return headers.map((header) => {
     // Remove special characters and replace spaces with underscores
     return header
@@ -8,7 +12,7 @@ export function normalizeHeaders(headers: string[]): string[] {
       .map((word, idx) =>
         idx === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)
       )
-      .join("");
+      .join("") as keyof IRawCandidateData;
   });
 }
 

@@ -2,6 +2,7 @@ import { ConfigService } from "./Config.service";
 import { Auth, google } from "googleapis";
 import { DataSource } from "./types/abstract/DataSource";
 import { SheetDataProcessor } from "./SheetDataProcessor.service";
+import { IRawCandidateData } from "./types/sheets";
 
 export class GoogleSpreadSheetService extends DataSource {
   private auth: Auth.GoogleAuth;
@@ -21,7 +22,7 @@ export class GoogleSpreadSheetService extends DataSource {
     });
   }
 
-  async getData(): Promise<Record<string, string | null>[]> {
+  async getData(): Promise<IRawCandidateData[]> {
     const sheets = google.sheets({ version: "v4", auth: this.auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: this.spreadSheetId,
@@ -31,6 +32,6 @@ export class GoogleSpreadSheetService extends DataSource {
     const rawData = SheetDataProcessor.parseToRawJson(
       response.data.values || []
     );
-    return SheetDataProcessor.processData(rawData);
+    return rawData;
   }
 }
