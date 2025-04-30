@@ -15,14 +15,15 @@ export abstract class DataSource<
 
   /**
    * Do not use this method directly If you want to leverage caching.
-   * Use getCandidates instead.
+   * Use getDataWithCache instead.
    */
   abstract getData(): Promise<T[]>;
 
-  async getCandidates(enableRedisLogging: boolean = false): Promise<T[]> {
-    const redis = await redisInstance.getRedis(!enableRedisLogging);
+  async getDataWithCache(opts?: { debug?: boolean }): Promise<T[]> {
+    const loggingEnabled = opts?.debug ?? false;
+    const redis = await redisInstance.getRedis(!loggingEnabled);
     if (redis) {
-      if (enableRedisLogging) {
+      if (loggingEnabled) {
         logger.info("Redis is available, checking cache...");
       }
       const cachedData = await redis.get(this.redisKey);
@@ -30,7 +31,7 @@ export abstract class DataSource<
         return JSON.parse(cachedData);
       }
     }
-    if (enableRedisLogging) {
+    if (loggingEnabled) {
       logger.info(
         "Redis cache is empty or Redis is not available. Fetching data..."
       );

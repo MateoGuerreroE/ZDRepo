@@ -15,6 +15,13 @@ export interface IQuestionData {
   answer: string | null;
 }
 
+export interface IRawJobData {
+  jobTitle: string;
+  jobDepartment: string;
+  jobLocation: string;
+  headline: string | null;
+  keywords: string | null;
+}
 export interface IRawCandidateData extends Record<string, string | null> {
   name: string;
   jobTitle: string;
@@ -59,4 +66,5 @@ export type NormalizedCandidateData = {
   skills: string[];
   disqualified: boolean;
   questions: IQuestionData[];
+  jobData: IRawJobData;
 };

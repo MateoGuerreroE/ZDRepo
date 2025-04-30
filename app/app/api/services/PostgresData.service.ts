@@ -6,6 +6,7 @@ import { NormalizedSourceData } from "../types/dataSource";
 import { candidatesTable } from "../data/schema";
 import { GoogleSpreadSheetService } from "./GoogleSpreadSheet.service";
 import { nanoid } from "nanoid";
+import { logger } from "../utils/Logger";
 
 export class PostgresDataService extends DataSource {
   private readonly connection: NeonHttpDatabase;
@@ -24,7 +25,12 @@ export class PostgresDataService extends DataSource {
     return results;
   }
 
+  /**
+   * Load data from Google Sheets and insert it into the database.
+   * This method is called when the database is empty.
+   */
   private async loadFromSheet(): Promise<void> {
+    logger.info("Database is empty. Loading data from Google Sheets.");
     const sheetService = new GoogleSpreadSheetService(this.configService);
     const data = await sheetService.getData();
     const candidates: NormalizedSourceData[] = data.map((candidate) => ({

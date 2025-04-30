@@ -1,9 +1,13 @@
+import { DataProcessingService } from "../services/DataProcessingService";
 import { DataSourceEnum } from "../types";
 import { DataSourceConnector } from "../utils/DataSourceConnector";
 
 export async function GET() {
   const dataSource = DataSourceConnector.getDataSource(DataSourceEnum.POSTGRES);
-  const data = await dataSource.getCandidates(true);
+  const processor = new DataProcessingService(dataSource);
+  const data = await processor.processData();
+
+  console.log(data.length);
 
   return Response.json({ data });
 }

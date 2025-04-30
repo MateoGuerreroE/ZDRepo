@@ -1,7 +1,7 @@
 import { ConfigService } from "./Config.service";
 import { Auth, google } from "googleapis";
 import { DataSource } from "../types/abstract/DataSource";
-import { SheetDataProcessor } from "./SheetDataProcessor.service";
+import { SheetDataProcessor } from "./SheetDataProcessor";
 import { IRawCandidateData, NormalizedCandidateData } from "../types/sheets";
 
 export class GoogleSpreadSheetService extends DataSource {

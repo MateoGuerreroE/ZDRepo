@@ -1,4 +1,4 @@
-import { SheetDataProcessor } from "./SheetDataProcessor.service";
+import { SheetDataProcessor } from "./SheetDataProcessor";
 import { IRawCandidateData } from "../types/sheets";
 
 describe("SheetDataProcessorService", () => {

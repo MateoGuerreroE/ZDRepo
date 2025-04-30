@@ -31,15 +31,16 @@ export class SheetDataProcessor {
 
   static processData(data: IRawCandidateData[]): NormalizedCandidateData[] {
     return data.map((row) => {
-      const educationString = row.educations;
-      const experienceString = row.experiences;
+      const { educations, experiences, skills, name, disqualified, ...info } =
+        row;
       return {
-        candidateName: row.name,
-        skills: row.skills ? row.skills.split("|").map((s) => s.trim()) : [],
-        education: this.parseEducationData(educationString),
-        experience: this.parseExperienceData(experienceString),
-        disqualified: row.disqualified === "Yes",
+        candidateName: name,
+        skills: skills ? skills.split("|").map((s) => s.trim()) : [],
+        education: this.parseEducationData(educations),
+        experience: this.parseExperienceData(experiences),
+        disqualified: disqualified === "Yes",
         questions: this.parseQuestionData(row),
+        jobData: info,
       };
     });
   }
