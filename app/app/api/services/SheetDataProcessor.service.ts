@@ -10,7 +10,7 @@ import {
   IQuestionData,
   IRawCandidateData,
   NormalizedCandidateData,
-} from "./types/sheets";
+} from "../types/sheets";
 
 export class SheetDataProcessor {
   static parseToRawJson(

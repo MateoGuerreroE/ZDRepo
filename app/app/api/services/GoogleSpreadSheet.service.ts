@@ -1,8 +1,8 @@
 import { ConfigService } from "./Config.service";
 import { Auth, google } from "googleapis";
-import { DataSource } from "./types/abstract/DataSource";
+import { DataSource } from "../types/abstract/DataSource";
 import { SheetDataProcessor } from "./SheetDataProcessor.service";
-import { IRawCandidateData } from "./types/sheets";
+import { IRawCandidateData, NormalizedCandidateData } from "../types/sheets";
 
 export class GoogleSpreadSheetService extends DataSource {
   private auth: Auth.GoogleAuth;
@@ -11,7 +11,7 @@ export class GoogleSpreadSheetService extends DataSource {
   constructor(private configService: ConfigService) {
     super();
     const googleCredentials = this.configService.getGoogleCredentials();
-    this.spreadSheetId = this.configService.getDataSource();
+    this.spreadSheetId = this.configService.getSpreadsheetId();
 
     this.auth = new google.auth.GoogleAuth({
       credentials: {
@@ -22,7 +22,7 @@ export class GoogleSpreadSheetService extends DataSource {
     });
   }
 
-  async getData(): Promise<IRawCandidateData[]> {
+  async getData(): Promise<NormalizedCandidateData[]> {
     const sheets = google.sheets({ version: "v4", auth: this.auth });
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: this.spreadSheetId,
@@ -32,6 +32,6 @@ export class GoogleSpreadSheetService extends DataSource {
     const rawData = SheetDataProcessor.parseToRawJson(
       response.data.values || []
     );
-    return rawData as IRawCandidateData[];
+    return SheetDataProcessor.processData(rawData as IRawCandidateData[]);
   }
 }

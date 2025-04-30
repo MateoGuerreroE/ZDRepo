@@ -21,6 +21,16 @@ export class ConfigService {
     dotenv.config();
   }
 
+  getSpreadsheetId(): string {
+    const spreadsheetId = process.env.SPREADSHEET_ID;
+    if (!spreadsheetId) {
+      throw new Error(
+        "SPREADSHEET_ID is not defined in the environment variables."
+      );
+    }
+    return spreadsheetId;
+  }
+
   getDataSource(): string {
     const dataSource = process.env.DATA_SOURCE;
     if (!dataSource) {

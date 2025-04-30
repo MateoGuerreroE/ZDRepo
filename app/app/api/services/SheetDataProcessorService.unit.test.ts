@@ -1,5 +1,5 @@
 import { SheetDataProcessor } from "./SheetDataProcessor.service";
-import { IRawCandidateData } from "./types/sheets";
+import { IRawCandidateData } from "../types/sheets";
 
 describe("SheetDataProcessorService", () => {
   const sampleSheetData = [
