@@ -32,6 +32,6 @@ export class GoogleSpreadSheetService extends DataSource {
     const rawData = SheetDataProcessor.parseToRawJson(
       response.data.values || []
     );
-    return rawData;
+    return rawData as IRawCandidateData[];
   }
 }

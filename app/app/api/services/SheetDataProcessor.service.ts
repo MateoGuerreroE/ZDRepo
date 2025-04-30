@@ -1,4 +1,9 @@
-import { cleanDate, normalizeHeaders } from "../utils";
+import {
+  calculateTimePeriod,
+  extractDate,
+  extractTitleAndInstitution,
+  normalizeHeaders,
+} from "../utils";
 import {
   IEducationData,
   IExperienceData,
@@ -8,12 +13,14 @@ import {
 } from "./types/sheets";
 
 export class SheetDataProcessor {
-  static parseToRawJson(spreadSheetsData: string[][]): IRawCandidateData[] {
+  static parseToRawJson(
+    spreadSheetsData: string[][]
+  ): Record<string, string | null>[] {
     const headers = normalizeHeaders(spreadSheetsData[0]);
     const rows = spreadSheetsData.slice(1);
 
     return rows.map((row) => {
-      const rowData = {} as IRawCandidateData;
+      const rowData: Record<string, string | null> = {};
       headers.forEach((header, index) => {
         rowData[header] = row[index] || null;
       });
@@ -48,9 +55,9 @@ export class SheetDataProcessor {
     const result: IExperienceData[] = [];
 
     for (const entry of entries) {
-      const { startDate, endDate, output } = this.extractDate(entry);
-      const { title, institution } = this.extractTitleAndInstitution(output);
-      const { totalExperience, months } = this.calculateTimePeriod(
+      const { startDate, endDate, output } = extractDate(entry);
+      const { title, institution } = extractTitleAndInstitution(output);
+      const { totalExperience, months } = calculateTimePeriod(
         startDate,
         endDate
       );
@@ -75,8 +82,8 @@ export class SheetDataProcessor {
     const entries = educationString.trim().split("|");
     const result: IEducationData[] = [];
     for (const entry of entries) {
-      const { startDate, endDate, output } = this.extractDate(entry);
-      const { title, institution } = this.extractTitleAndInstitution(output);
+      const { startDate, endDate, output } = extractDate(entry);
+      const { title, institution } = extractTitleAndInstitution(output);
 
       result.push({
         institution: institution,
@@ -104,75 +111,6 @@ export class SheetDataProcessor {
     }
 
     return questionData;
-  }
-
-  private static extractDate(input: string): {
-    startDate: string | null;
-    endDate: string | null;
-    output: string;
-  } {
-    const matches = [...input.matchAll(/\(([^)]+)\)/g)];
-    if (matches.length) {
-      const lastMatch = matches[matches.length - 1];
-      return {
-        startDate: cleanDate(lastMatch[1].split(" to ")[0] || " "),
-        endDate: cleanDate(lastMatch[1].split(" to ")[1] || " "),
-        output: input.replace(lastMatch[0], "").trim(),
-      };
-    }
-    return {
-      startDate: null,
-      endDate: null,
-      output: input.trim(),
-    };
-  }
-
-  private static extractTitleAndInstitution(baseString: string): {
-    title: string | null;
-    institution: string | null;
-  } {
-    const match = baseString.match(/\b(at)\b/i);
-    if (!match || match.index === undefined) {
-      return { title: null, institution: null };
-    }
-
-    const title = baseString.slice(0, match.index).trim();
-    const institution = baseString.slice(match.index + match[0].length).trim();
-
-    return {
-      title: title.length ? title : null,
-      institution: institution.length ? institution : null,
-    };
-  }
-
-  private static calculateTimePeriod(
-    fromDate: string | null,
-    toDate: string | null
-  ): { totalExperience: string | null; months: number | null } {
-    if (!fromDate) {
-      return {
-        totalExperience: null,
-        months: null,
-      };
-    }
-
-    const from = new Date(fromDate + " 1");
-    const to = toDate ? new Date(toDate + " 1") : new Date();
-
-    const years = to.getFullYear() - from.getFullYear();
-    const months = to.getMonth() - from.getMonth();
-
-    const totalMonths = years * 12 + months;
-    if (totalMonths < 0) return { totalExperience: null, months: null };
-
-    const totalYears = Math.floor(totalMonths / 12);
-
-    const remainingMonths = ((totalMonths % 12) + 12) % 12;
-
-    return {
-      totalExperience: `${totalYears} years ${remainingMonths} months`,
-      months: totalMonths,
-    };
   }
 
   /**
