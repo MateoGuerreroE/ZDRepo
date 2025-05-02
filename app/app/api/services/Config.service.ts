@@ -49,6 +49,10 @@ export class ConfigService {
       client_id: process.env.GOOGLE_CLIENT_ID || "",
     };
   }
+
+  getLLMServiceUrl(): string {
+    return process.env.LLM_SERVICE_URL || "http://localhost:8000";
+  }
 }
 
 export const configService = new ConfigService();

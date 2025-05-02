@@ -74,7 +74,9 @@ export class CandidateScoringService {
         candidates: nextBatch,
       };
 
-      const api = await fetch("http://localhost:8000/test", {
+      const url = this.configService.getLLMServiceUrl();
+
+      const api = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

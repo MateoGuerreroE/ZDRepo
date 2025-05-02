@@ -31,6 +31,8 @@ Required envs: (Nextjs)
 DATA_SOURCE={dababase_url}
 
 REDIS_MAX_RETRIES={int} (Will default to 5 If not provided)
+
+LLM_SERVICE_URL={llm python service url} -> defaults to localhost:8000 when not given
 ```
 
 Required envs: (Python)
