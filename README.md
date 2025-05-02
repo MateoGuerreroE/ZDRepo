@@ -17,6 +17,10 @@ Service API creates a Prompt using defaults and provided information, so that LL
 
 App backend then finishes mapping that information and matching with candidate, so It can return a clean result to be rendered on the webpage.
 
+A very basic diagram of how It works:
+
+![Diagram](https://i.ibb.co/27FLzZRZ/Diagram.jpg)
+
 ## Setup
 
 These are required envs for current setup:
