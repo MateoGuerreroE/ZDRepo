@@ -4,9 +4,9 @@ from fastapi.responses import JSONResponse
 
 from handler import Handler
 from schema.types import JobData
+from mangum import Mangum
 
 app = FastAPI()
-
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -22,7 +22,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 # Endpoint
-@app.post("/test")
+@app.post("/llm")
 async def test(job_data: JobData):
     result = Handler.handle_request(job_data)
     return {"result": result}
+
+handler = Mangum(app)
