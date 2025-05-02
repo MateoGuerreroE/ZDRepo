@@ -1,0 +1,86 @@
+{
+    "result": {
+        "candidates": [
+            {
+                "candidateId": "Tl6M0zb52PMYfy2IF9wew",
+                "overallExperience": 40,
+                "education": 0,
+                "questionAlignment": 17,
+                "completion": 10,
+                "highlights": "Candidate has relevant experience as a Test Analyst at IBM. Provided a number of years and has a certification."
+            },
+            {
+                "candidateId": "ZGk9d6zyNUzemX4c3fQij",
+                "overallExperience": 0,
+                "education": 0,
+                "questionAlignment": 10,
+                "completion": 10,
+                "highlights": "Candidate has no listed experience. Answers to questions are present."
+            },
+            {
+                "candidateId": "kA9eeOTATBz4mkXDOxKDe",
+                "overallExperience": 48,
+                "education": 18,
+                "questionAlignment": 19,
+                "completion": 10,
+                "highlights": "Extensive experience in QA roles. Relevant education and certifications. Complete answers to questions."
+            },
+            {
+                "candidateId": "f8VTajBe5RtFwt1c7dkOd",
+                "overallExperience": 35,
+                "education": 15,
+                "questionAlignment": 15,
+                "completion": 10,
+                "highlights": "Experience as an Associate System Engineer. Education in Electronics and Communication. Answers provided to all questions."
+            },
+            {
+                "candidateId": "Zo-6LwRbq_aRkflphIXFN",
+                "overallExperience": 49,
+                "education": 17,
+                "questionAlignment": 19,
+                "completion": 10,
+                "highlights": "Extensive QA experience, including Senior QA roles. Relevant education and certifications in Quality Assurance. Provided answers to all questions."
+            },
+            {
+                "candidateId": "m-SG9v2wRfWsI61WEqFDn",
+                "overallExperience": 25,
+                "education": 12,
+                "questionAlignment": 16,
+                "completion": 10,
+                "highlights": "Some QA experience. Education in Engineering Informatics and Development. Provides answers to all questions."
+            },
+            {
+                "candidateId": "wxpt6pva9ThoS0rRt7CO1",
+                "overallExperience": 35,
+                "education": 5,
+                "questionAlignment": 15,
+                "completion": 10,
+                "highlights": "Experience as a QA Engineer. Some relevant skills. Provided answers to all questions."
+            },
+            {
+                "candidateId": "1p5n09sG4CPL3qAeEVbsE",
+                "overallExperience": 45,
+                "education": 15,
+                "questionAlignment": 17,
+                "completion": 10,
+                "highlights": "Significant QA experience. Education in Computer Science. Answers provided to all questions."
+            },
+            {
+                "candidateId": "PBtvS9uxMyxEEjMP1CU9P",
+                "overallExperience": 30,
+                "education": 15,
+                "questionAlignment": 15,
+                "completion": 10,
+                "highlights": "Relevant QA experience. Education in Computer Science. Provided answers to all questions."
+            },
+            {
+                "candidateId": "FWmiWHqsQKUExBeC9o-Q3",
+                "overallExperience": 28,
+                "education": 5,
+                "questionAlignment": 16,
+                "completion": 10,
+                "highlights": "Junior QA Engineer experience. Accounting degree. Provides answers to all questions."
+            }
+        ]
+    }
+}

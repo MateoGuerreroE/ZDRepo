@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
+from handler import Handler
 from schema.types import JobData
 
 app = FastAPI()
@@ -22,5 +24,5 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # Endpoint
 @app.post("/test")
 async def test(job_data: JobData):
-    print(job_data.job)
-    return {"message": "Hello, World!"}
+    result = Handler.handle_request(job_data)
+    return {"result": result}
