@@ -22,95 +22,104 @@ export class CandidateScoringService {
     jobDescription: string,
     candidates: Candidate[]
   ): Promise<IScoreResult[]> {
-    const jdHash = hashJobDescription(jobDescription);
-
-    const cachedCandidateIds: string[] = [];
-    const result: ScoringInfo[] = [];
-
-    const redis = await redisInstance.getRedis();
-
-    if (redis) {
-      // Check cached candidates
-      for (const candidate of candidates) {
-        const candidateCache = await redis.get(
-          `${jdHash}:${candidate.candidateId}`
-        );
-        if (candidateCache) {
-          const score = JSON.parse(candidateCache) as ScoringInfo;
-          result.push(score);
-          cachedCandidateIds.push(candidate.candidateId);
-          continue;
-        }
-      }
-    }
-    // Do not DB search those cached results
-    const uncached = candidates.filter(
-      (c) => !cachedCandidateIds.includes(c.candidateId)
-    );
-    const candidateIds = uncached.map((c) => c.candidateId);
-    const storedScores = await this.matchScores(jdHash, candidateIds);
-
-    for (const storedScore of storedScores) {
-      cachedCandidateIds.push(storedScore.candidateId);
-      result.push(storedScore);
-    }
-
-    logger.debug(
-      `Found ${cachedCandidateIds.length} results stored or cached.`
-    );
-
-    const unprocessedCandidates = candidates.filter(
-      (c) => !cachedCandidateIds.includes(c.candidateId)
-    );
-
-    // DO a DB search.
-
-    while (unprocessedCandidates.length) {
-      const nextBatch = getNextBatch(unprocessedCandidates, 10);
-
-      const data = {
-        job: "",
-        jobDescription,
-        candidates: nextBatch,
-      };
-
-      const url = this.configService.getLLMServiceUrl();
-
-      const api = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      const { result: apiResult } = await api.json();
-
-      const { candidates: candidateScores } = apiResult;
-
-      const scores = DomainDataProcessor.getScoringInfo(
-        jdHash,
-        candidateScores
-      );
-
-      // TODO Possible issue: Stored uncached candidates do not get set to cache
-      if (redis) {
-        for (const score of scores) {
-          const cacheKey = `${jdHash}:${score.candidateId}`;
-          redis.set(cacheKey, JSON.stringify(score));
-        }
-      }
-      result.push(...scores);
-    }
 
     try {
-      await this.saveResults(jdHash, result);
-    } catch {
-      logger.debug("Unable to store on database");
-    }
-    const topCandidates = DomainDataProcessor.getTopCandidates(result);
 
-    return this.mapCandidate(candidates, topCandidates);
+      const jdHash = hashJobDescription(jobDescription);
+  
+      const cachedCandidateIds: string[] = [];
+      const result: ScoringInfo[] = [];
+  
+      const redis = await redisInstance.getRedis();
+  
+      if (redis) {
+        // Check cached candidates
+        for (const candidate of candidates) {
+          const candidateCache = await redis.get(
+            `${jdHash}:${candidate.candidateId}`
+          );
+          if (candidateCache) {
+            const score = JSON.parse(candidateCache) as ScoringInfo;
+            result.push(score);
+            cachedCandidateIds.push(candidate.candidateId);
+            continue;
+          }
+        }
+      }
+      // Do not DB search those cached results
+      const uncached = candidates.filter(
+        (c) => !cachedCandidateIds.includes(c.candidateId)
+      );
+      const candidateIds = uncached.map((c) => c.candidateId);
+      const storedScores = await this.matchScores(jdHash, candidateIds);
+  
+      for (const storedScore of storedScores) {
+        cachedCandidateIds.push(storedScore.candidateId);
+        result.push(storedScore);
+      }
+  
+      logger.debug(
+        `Found ${cachedCandidateIds.length} results stored or cached.`
+      );
+  
+      const unprocessedCandidates = candidates.filter(
+        (c) => !cachedCandidateIds.includes(c.candidateId)
+      );
+  
+      // DO a DB search.
+  
+      while (unprocessedCandidates.length) {
+        const nextBatch = getNextBatch(unprocessedCandidates, 10);
+  
+        const data = {
+          job: jdHash,
+          jobDescription,
+          candidates: nextBatch,
+        };
+  
+        const url = this.configService.getLLMServiceUrl();
+  
+        const api = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+  
+        const { result: apiResult } = await api.json();
+  
+        const { candidates: candidateScores } = apiResult;
+  
+        const scores = DomainDataProcessor.getScoringInfo(
+          jdHash,
+          candidateScores
+        );
+  
+        // TODO Possible issue: Stored uncached candidates do not get set to cache
+        if (redis) {
+          for (const score of scores) {
+            const cacheKey = `${jdHash}:${score.candidateId}`;
+            redis.set(cacheKey, JSON.stringify(score));
+          }
+        }
+        result.push(...scores);
+      }
+  
+      try {
+        await this.saveResults(jdHash, result);
+      } catch {
+        logger.debug("Unable to store on database");
+      }
+      const topCandidates = DomainDataProcessor.getTopCandidates(result);
+  
+      return this.mapCandidate(candidates, topCandidates);
+    } catch (e) {
+      if (e instanceof Error) {
+        logger.error(e.message);
+      }
+      return []
+    }
   }
 
   // TODO This should be in a data source service -> Refactor

@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { logger } from "../utils/Logger";
 
 export type GoogleCredentials = {
   client_email: string;
@@ -51,7 +52,12 @@ export class ConfigService {
   }
 
   getLLMServiceUrl(): string {
-    return process.env.LLM_SERVICE_URL || "http://localhost:8000";
+    const llmServiceUrl = process.env.LLM_SERVICE_URL;
+    if (!llmServiceUrl) {
+      logger.warn("No LLM_SERVICE_URL defined. Using default: http://localhost:8000");
+      return "http://localhost:8000";
+    }
+    return llmServiceUrl;
   }
 }
 
