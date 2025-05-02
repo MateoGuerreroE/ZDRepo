@@ -60,6 +60,7 @@ export interface IRawCandidateData extends Record<string, string | null> {
 }
 
 export type NormalizedCandidateData = {
+  candidateId?: string;
   candidateName: string;
   experience: IExperienceData[];
   education: IEducationData[];

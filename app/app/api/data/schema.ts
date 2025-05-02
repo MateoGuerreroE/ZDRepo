@@ -30,6 +30,8 @@ export const scoreTable = pgTable("scores", {
   scoredAt: timestamp("scoredAt").notNull().defaultNow(),
   generalScoring: integer("generalScoring").notNull(),
   scoringDetails: json().notNull().$type<IScoringDetails>(),
+  highlights: text("highlights").notNull(),
+  jobHash: text("jobHash").notNull(),
   candidateId: text("candidateId")
     .notNull()
     .references(() => candidatesTable.candidateId),

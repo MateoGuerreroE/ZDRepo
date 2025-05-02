@@ -1,103 +1,102 @@
+"use client";
+import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
+import { useState } from "react";
+import { IScoreResult } from "./api/types/scoring";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [jobDescription, setJobDescription] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [errorResult, setErrorResult] = useState<string>("");
+  const [progress, setProgress] = useState(0);
+  const [results, setResults] = useState<IScoreResult[]>([]);
+  const [loading, isLoading] = useState<boolean>(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSubmit = async () => {
+    if (!jobDescription || jobDescription.length > 200) {
+      setError(
+        "Invalid job description. Job Description must be less than 200 characters"
+      );
+      return;
+    }
+    if (error) setError("");
+
+    isLoading(true);
+    setProgress(10);
+    try {
+      const api = await fetch("/api/score", {
+        method: "POST",
+        body: JSON.stringify({ jobDescription }),
+        headers: { "Content-Type": "application/json" },
+        cache: "no-cache",
+      });
+
+      const { data } = await api.json();
+
+      console.log(data);
+
+      setResults(data);
+    } catch (e) {
+      const message = (e as Error).message || "Unknown error";
+      setErrorResult(message);
+    } finally {
+      setTimeout(() => setProgress(90), 800);
+      isLoading(false);
+    }
+  };
+
+  return (
+    <main className="bg-zinc-400 flex flex-col gap-12 p-7 min-h-screen items-center justify-center">
+      <h1 className="font-mono text-5xl font-bold">ZD Challenge!</h1>
+      <div className="flex flex-row w-full max-w-[1200px]">
+        <div className="flex flex-col w-1/2 px-8">
+          <h3 className="text-xl font-sans font-semibold mb-5">
+            Job Description:
+          </h3>
+          <div className="flex flex-col gap-5 h-64">
+            <div className="h-full">
+              <Textarea
+                className="h-[90%]"
+                value={jobDescription}
+                onChange={(value) => setJobDescription(value.target.value)}
+              />
+              <p className="mt-1 text-red-800">{error}</p>
+            </div>
+            <Button
+              disabled={!jobDescription.length || jobDescription.length < 30}
+              className="hover:cursor-pointer"
+              onClick={() => handleSubmit()}
+            >
+              Press me!
+            </Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <div className="w-1/2 px-8">
+          <h3 className="text-xl font-sans font-semibold mb-3">Results:</h3>
+          <div className="w-full border-1 border-zinc-200 shadow-xl rounded-2xl h-[500px] flex">
+            {loading ? (
+              <div className="p-5 flex items-center justify-center h-32 w-full">
+                <Progress value={progress} />
+              </div>
+            ) : results.length ? (
+              <></>
+            ) : (
+              <div className="p-5 italic">
+                {errorResult ? (
+                  <p className="text-red-800">{errorResult}</p>
+                ) : (
+                  <p className="text-center">
+                    There are no results yet. Load a job description, press the
+                    button and prepare to be amazed!
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }

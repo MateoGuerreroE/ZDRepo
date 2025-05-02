@@ -1,11 +1,11 @@
 import { DataSource } from "../types/abstract";
 import { DomainDataProcessor } from "./DomainDataProcessor";
-import { ProcessedData } from "../types";
+import { Candidate, ProcessedData } from "../types";
 
 export class DataProcessingService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async processData(): Promise<ProcessedData[]> {
+  async processDataWithJD(): Promise<ProcessedData[]> {
     const data = await this.dataSource.getDataWithCache({ debug: true });
     const jobsMap = DomainDataProcessor.getJobsMap(data);
     const processedCandidates =
@@ -22,5 +22,12 @@ export class DataProcessingService {
     );
 
     return processedData;
+  }
+
+  async processCandidates(): Promise<Candidate[]> {
+    const data = await this.dataSource.getDataWithCache({ debug: true });
+    const processedCandidates =
+      DomainDataProcessor.getProcessedCandidates(data);
+    return processedCandidates;
   }
 }

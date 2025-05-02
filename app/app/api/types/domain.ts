@@ -16,6 +16,7 @@ export interface IExperienceRequirements {
 }
 
 export type Candidate = Omit<NormalizedCandidateData, "jobData"> & {
+  candidateId: string;
   jobApplied: string;
 };
 

@@ -1,7 +1,13 @@
+import { nanoid } from "nanoid";
 import { IQuestionData, NormalizedCandidateData } from "../types";
-import { Candidate } from "../types/dataSource";
-import { IExperienceRequirements, IJob, IJobData } from "../types/domain";
+import {
+  Candidate,
+  IExperienceRequirements,
+  IJob,
+  IJobData,
+} from "../types/domain";
 import { buildJobDescription } from "../utils/DomainUtils";
+import { RawScoring, ScoringInfo } from "../types/scoring";
 
 export class DomainDataProcessor {
   static getJobsMap(data: NormalizedCandidateData[]): Map<string, IJob> {
@@ -40,6 +46,7 @@ export class DomainDataProcessor {
       const { jobData, ...candidateInfo } = candidate;
       return {
         ...candidateInfo,
+        candidateId: candidateInfo.candidateId ?? nanoid(),
         jobApplied: jobData.jobTitle,
       };
     });
@@ -64,5 +71,31 @@ export class DomainDataProcessor {
       }
     }
     return result;
+  }
+
+  static getScoringInfo(jdHash: string, scores: RawScoring[]): ScoringInfo[] {
+    return scores.map((rscore) => {
+      const { candidateId, highlights, ...scoringDetails } = rscore;
+      const totalScore = Object.values(scoringDetails).reduce((acc, next) => {
+        return acc + next;
+      }, 0);
+
+      return {
+        candidateId,
+        scoringId: nanoid(),
+        generalScoring: totalScore,
+        jobHash: jdHash,
+        scoredAt: new Date(),
+        scoringDetails,
+        highlights,
+      };
+    });
+  }
+
+  static getTopCandidates(scores: ScoringInfo[]) {
+    const sortedScores = scores.sort(
+      (a, b) => b.generalScoring - a.generalScoring
+    );
+    return sortedScores.slice(0, 30);
   }
 }
