@@ -79,3 +79,7 @@ To be able to use redis caching capabilities you will need to have a local insta
 and then:
 `docker run -d --name {container_name} -p 6379:6379 redis
 `
+
+## Tests
+
+Want to test functionality? Currently we have strong unit tests for app only, but would be extended. For testing on the app, use `npm test` for jest to discover and execute tests in the project.

@@ -45,8 +45,15 @@ describe("GoogleSpreadSheetService", () => {
     const result = await instance.getData();
     expect(result).toStrictEqual([
       {
-        name: "John Doe",
-        age: "30",
+        candidateName: "John Doe",
+        questions: [],
+        education: [],
+        disqualified: false,
+        experience: [],
+        skills: [],
+        jobData: {
+          age: "30",
+        }
       },
     ]);
   });

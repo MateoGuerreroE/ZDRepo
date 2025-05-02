@@ -100,7 +100,7 @@ export default function Home() {
               className="hover:cursor-pointer"
               onClick={() => handleSubmit()}
             >
-              Press me!
+              Generate ranking
             </Button>
           </div>
         </div>

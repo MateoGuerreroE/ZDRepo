@@ -212,6 +212,7 @@ describe("SheetDataProcessorService", () => {
       ],
       skills: ["java", "kotlin", "yaml"],
       disqualified: false,
+      jobData: expect.any(Object),
     });
   });
 });
