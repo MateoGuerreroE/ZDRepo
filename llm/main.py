@@ -22,9 +22,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 # Endpoint
-@app.post("/llm")
+@app.post("/")
 async def test(job_data: JobData):
-    result = Handler.handle_request(job_data)
-    return {"result": result}
+    try:
+        result = Handler.handle_request(job_data)
+        return {"result": result }
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
 
 handler = Mangum(app)
