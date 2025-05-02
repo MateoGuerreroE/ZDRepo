@@ -23,7 +23,7 @@ class LLModel:
             return
         example_list = []
         for idx, example in enumerate(examples, start=1):
-            example_list.append(f"Example {idx}: {example["input"]}, Expected: {example["response"]}")
+            example_list.append(f"Example {idx}: {example['input']}, Expected: {example['response']}")
 
         self.prompt.examples = example_list
 
