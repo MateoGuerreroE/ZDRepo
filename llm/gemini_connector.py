@@ -11,7 +11,7 @@ from schema.types import Prompt
 
 load_dotenv()
 gemini_key = os.getenv("GEMINI_KEY")
-max_retries = os.getenv("MODEL_MAX_RETRIES")
+max_retries = int(os.getenv("MODEL_MAX_RETRIES", "5"))
 
 class GeminiConnector(Connector):
     client: GenerativeModel
