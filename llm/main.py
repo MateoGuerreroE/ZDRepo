@@ -9,7 +9,7 @@ from mangum import Mangum
 app = FastAPI()
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(_, exc: RequestValidationError):
     errors = []
     for err in exc.errors():
         field = ".".join(str(x) for x in err["loc"][1:])

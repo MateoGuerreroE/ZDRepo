@@ -2,7 +2,6 @@ import json
 
 from data.prompt_defaults import prompt_role, prompt_instruction, prompt_role_description, prompt_context, \
     prompt_examples
-from llm_model import LLModel
 from schema.types import JobData, Prompt
 
 
@@ -23,7 +22,7 @@ def verify_parsing(data: dict) -> bool:
             print("Invalid data format")
             return False
 
-        return True
+    return True
 
 
 def get_json_from_response(response: str) -> dict:
@@ -35,9 +34,18 @@ def get_json_from_response(response: str) -> dict:
         return {}
 
 
-def prepare_prompt(job: JobData, model: LLModel) -> Prompt:
+def get_prompt(job: JobData, role=prompt_role, role_description=prompt_role_description,
+                   examples=prompt_examples, instruction=prompt_instruction, context=prompt_context) -> Prompt:
     prompt_data = f"\nReady?\n\nThis is the information given for the task: \n\n{job.jobDescription}\n And candidate list:\n\n${job.candidates}"
-    prompt = model.generate_prompt(prompt_role, prompt_instruction, role_description=prompt_role_description,
-                                   context=prompt_context, data=prompt_data, examples=prompt_examples)
+
+    prompt = Prompt()
+
+    prompt.set_role(role, role_description)
+    prompt.set_instruction(instruction)
+
+    prompt.set_examples(examples)
+    prompt.set_context(context)
+
+    prompt.set_data(prompt_data)
 
     return prompt
