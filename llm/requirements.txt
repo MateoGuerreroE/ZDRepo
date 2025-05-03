@@ -3,3 +3,4 @@ mangum
 google-generativeai
 python-dotenv
 uvicorn
+pydantic
