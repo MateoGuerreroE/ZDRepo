@@ -1,5 +1,3 @@
-import { Candidate } from "./domain";
-
 export interface IScoringDetails {
   overallExperience: number; // 0-50 including skills (if any) and relevant experience
   education: number; // 0-20 including relevant education and certifications
@@ -14,7 +12,6 @@ export type ScoringInfo = {
   scoredAt: Date;
   highlights: string;
   scoringDetails: IScoringDetails;
-  jobHash: string;
 };
 
 export interface RawScoring extends IScoringDetails {
@@ -27,5 +24,5 @@ export type ScoringResponse = {
 };
 
 export interface IScoreResult extends ScoringInfo {
-  candidate: Candidate;
+  candidateName: string;
 }

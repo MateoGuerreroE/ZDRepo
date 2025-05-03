@@ -5,7 +5,7 @@ import {
   extractDate,
   extractTitleAndInstitution,
   normalizeHeaders,
-} from "./SheetUtils";
+} from "./CsvUtils";
 
 describe("SheetUtils", () => {
   it("should normalize headers correctly", () => {
