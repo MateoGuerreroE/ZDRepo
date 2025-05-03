@@ -1,79 +1,26 @@
 import { nanoid } from "nanoid";
-import { IQuestionData, NormalizedCandidateData } from "../types";
-import {
-  Candidate,
-  IExperienceRequirements,
-  IJob,
-  IJobData,
-} from "../types/domain";
-import { buildJobDescription } from "../utils/DomainUtils";
-import { RawScoring, ScoringInfo } from "../types/scoring";
+import { IScoreResult, RawScoring, ScoringInfo } from "../types/scoring";
+import { Candidate } from "../types";
 
 export class DomainDataProcessor {
-  static getJobsMap(data: NormalizedCandidateData[]): Map<string, IJob> {
-    const jobs: Map<string, IJob> = new Map();
-    for (const candidate of data) {
-      const { jobData } = candidate;
-      const key = jobData.jobTitle;
-      if (jobs.has(key)) {
-        continue;
-      }
-      // TODO: This infers reprocessing, is It easier to receive candidate normalization? -> Change structure
-
-      const job: IJobData = {
-        jobTitle: jobData.jobTitle,
-        jobTags: jobData.keywords
-          ? jobData.keywords.split("|").map((s) => s.trim())
-          : [],
-        department: jobData.jobDepartment,
-        headline: jobData.headline || null,
-        experienceRequirements: this.getExperienceRequirements(
-          candidate.questions
-        ),
-      };
-      const jobDescription = buildJobDescription(job);
-
-      jobs.set(key, { ...job, jobDescription });
-    }
-
-    return jobs;
-  }
-
-  static getProcessedCandidates(
-    candidates: NormalizedCandidateData[]
-  ): Candidate[] {
-    const processedCandidates = candidates.map((candidate) => {
-      const { jobData, ...candidateInfo } = candidate;
+  static processScores(
+    candidates: Candidate[],
+    scores: RawScoring[]
+  ): IScoreResult[] {
+    const scoringInfo = this.getScoringInfo(scores);
+    const topScores = this.getTopScores(scoringInfo);
+    return topScores.map((score) => {
+      const candidate = candidates.find(
+        (c) => c.candidateId === score.candidateId
+      );
       return {
-        ...candidateInfo,
-        candidateId: candidateInfo.candidateId ?? nanoid(),
-        jobApplied: jobData.jobTitle,
+        ...score,
+        candidateName: candidate?.candidateName || "Unknown",
       };
     });
-    return processedCandidates;
   }
 
-  private static getExperienceRequirements(
-    questions: IQuestionData[]
-  ): IExperienceRequirements[] {
-    const result: IExperienceRequirements[] = [];
-    for (const question of questions) {
-      const match = question.question?.match(/(\d+)\+?\s*years?/); // This matches "2 years" or "2+ years"
-      if (match) {
-        const years = parseInt(match[1], 10);
-        const subject = question.question
-          ?.slice(match.index! + match[0].length)
-          .trim();
-        if (!subject) {
-          continue;
-        }
-        result.push({ subject, years });
-      }
-    }
-    return result;
-  }
-
-  static getScoringInfo(jdHash: string, scores: RawScoring[]): ScoringInfo[] {
+  private static getScoringInfo(scores: RawScoring[]): ScoringInfo[] {
     return scores.map((rscore) => {
       const { candidateId, highlights, ...scoringDetails } = rscore;
       const totalScore = Object.values(scoringDetails).reduce((acc, next) => {
@@ -84,7 +31,6 @@ export class DomainDataProcessor {
         candidateId,
         scoringId: nanoid(),
         generalScoring: totalScore,
-        jobHash: jdHash,
         scoredAt: new Date(),
         scoringDetails,
         highlights,
@@ -92,7 +38,7 @@ export class DomainDataProcessor {
     });
   }
 
-  static getTopCandidates(scores: ScoringInfo[]) {
+  private static getTopScores(scores: ScoringInfo[]) {
     const sortedScores = scores.sort(
       (a, b) => b.generalScoring - a.generalScoring
     );

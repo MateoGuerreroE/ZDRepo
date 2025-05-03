@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 import { logger } from "../utils/Logger";
+import { RedisCredentials } from "../types/app";
+import { AppException } from "../types/exceptions";
 
 export type GoogleCredentials = {
   client_email: string;
@@ -54,10 +56,31 @@ export class ConfigService {
   getLLMServiceUrl(): string {
     const llmServiceUrl = process.env.LLM_SERVICE_URL;
     if (!llmServiceUrl) {
-      logger.warn("No LLM_SERVICE_URL defined. Using default: http://localhost:8000");
+      logger.warn(
+        "No LLM_SERVICE_URL defined. Using default: http://localhost:8000"
+      );
       return "http://localhost:8000";
     }
     return llmServiceUrl;
+  }
+
+  getRedisCredentials(): RedisCredentials {
+    const host = process.env.REDIS_HOST || "localhost";
+    const port = process.env.REDIS_PORT
+      ? parseInt(process.env.REDIS_PORT)
+      : 6379;
+
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (isProduction && (!host || !port)) {
+      logger.error("No Redis env vars found");
+      throw new AppException("No Redis variables found");
+    }
+
+    return {
+      host,
+      port,
+    };
   }
 }
 
