@@ -1,9 +1,9 @@
 import { configService } from "../services/Config.service";
 import Redis from "ioredis";
-import { nanoid } from "nanoid";
 import { AppException } from "../types/exceptions";
 import { logger } from "../utils/Logger";
 import { RawScoring } from "../types/scoring";
+import { hashString } from "../utils";
 
 export class RedisClient {
   private client: Redis | null = null;
@@ -59,8 +59,8 @@ export class RedisClient {
 
   // Job processing system
 
-  async createJob(): Promise<string> {
-    const jobKey = nanoid(10);
+  async createJob(jd: string): Promise<string> {
+    const jobKey = hashString(jd);
     if (!this.hasClient || !this.client)
       throw new AppException("Redis client not available");
     await this.client.set(`${jobKey}:status`, "processing", "EX", this.jobTTL);

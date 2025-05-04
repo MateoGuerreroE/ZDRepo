@@ -126,7 +126,7 @@ export default function Home() {
                     >
                       <AccordionTrigger className="text-lg font-semibold flex flex-row">
                         <p>
-                          {index + 1}) {result.candidate.candidateName}
+                          {index + 1}) {result.candidateName}
                         </p>
                         <p>Score: {result.generalScoring}</p>
                       </AccordionTrigger>

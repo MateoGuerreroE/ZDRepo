@@ -1,7 +1,8 @@
 import { RedisClient } from "../data";
 import { Candidate } from "../types";
+import { AppException } from "../types/exceptions";
 import { IScoreResult, RawScoring } from "../types/scoring";
-import { getNextBatch, splitInBatches } from "../utils/DomainUtils";
+import { getNextBatch, hashString, splitInBatches } from "../utils/DomainUtils";
 import { logger } from "../utils/Logger";
 import { configService } from "./Config.service";
 import { DomainDataProcessor } from "./DomainDataProcessor";
@@ -61,7 +62,12 @@ export class ScoreCandidateService {
     jd: string,
     candidates: Candidate[]
   ): Promise<string> {
-    const jobId = await this.redisClient.createJob();
+    const hashJd = hashString(jd);
+    const jobExists = await this.redisClient.get(`${hashJd}:status`);
+    if (jobExists && jobExists !== "done") {
+      throw new AppException("Job already exists and is still processing");
+    }
+    const jobId = jobExists ? hashJd : await this.redisClient.createJob(jd);
     const batches = splitInBatches(candidates, 10);
 
     await this.redisClient.setJobStatus(jobId, "processing");
@@ -109,5 +115,19 @@ export class ScoreCandidateService {
       logger.error(`Batch processing error ${err}`);
       await this.redisClient.setJobStatus(jobId, "failed");
     }
+  }
+
+  async getJobResults(jobId: string): Promise<RawScoring[]> {
+    const jobStatus = await this.redisClient.get(`${jobId}:status`);
+
+    if (!jobStatus) {
+      throw new AppException("Job not found");
+    }
+    if (jobStatus !== "done") {
+      throw new AppException("Processing");
+    }
+
+    const candidates = await this.redisClient.getJobData(jobId);
+    return candidates.map((c) => JSON.parse(c)) as RawScoring[];
   }
 }
