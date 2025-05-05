@@ -10,23 +10,25 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useJobProcess } from "./useJobProcess";
+import { Input } from "@/components/ui/input";
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [errorResult, setErrorResult] = useState<string>("");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const [progress, setProgress] = useState(0);
-
   const [results, setResults] = useState<IScoreResult[]>([]);
   const [loading, isLoading] = useState<boolean>(false);
+
+  const [pollingFunction, buttonDisabled] = useJobProcess();
 
   const handleRequestComplete = () => {
     setProgress(100);
     setTimeout(() => isLoading(false), 500);
   };
-
-  console.log(results.length);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -38,7 +40,7 @@ export default function Home() {
             clearInterval(interval);
             return prev;
           }
-          return prev + 20;
+          return prev + 10;
         });
       }, 15000); // every 15 seconds
     }
@@ -58,23 +60,59 @@ export default function Home() {
     isLoading(true);
     setProgress(10);
     try {
-      const api = await fetch("/api/score", {
-        method: "POST",
-        body: JSON.stringify({ jobDescription }),
-        headers: { "Content-Type": "application/json" },
-        cache: "no-cache",
-      });
+      let api: Response;
+      if (csvFile) {
+        const formData = new FormData();
+        formData.append("file", csvFile);
+        formData.append("jobDescription", jobDescription);
+        api = await fetch("/api/score", {
+          method: "POST",
+          body: formData,
+          cache: "no-cache",
+        });
+      } else {
+        api = await fetch("/api/score", {
+          method: "POST",
+          body: JSON.stringify({ jobDescription }),
+          headers: { "Content-Type": "application/json" },
+          cache: "no-cache",
+        });
+      }
 
+      if (!api.ok) {
+        const message =
+          "There was an error processing your request. Try again later.";
+        setErrorResult(message);
+        return;
+      }
       const { data } = await api.json();
 
-      console.log(data);
+      if (Array.isArray(data)) {
+        setResults(data);
+      } else {
+        const result = await pollingFunction(
+          "/api/status",
+          data.candidates,
+          data.jobId
+        );
 
-      setResults(data);
+        setResults(result);
+      }
     } catch (e) {
       const message = (e as Error).message || "Unknown error";
       setErrorResult(message);
     } finally {
       handleRequestComplete();
+    }
+  };
+
+  const handleFilePick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCsvFile(file);
+      setError("");
+    } else {
+      setError("Invalid file. Please select a valid CSV file.");
     }
   };
 
@@ -89,14 +127,24 @@ export default function Home() {
           <div className="flex flex-col gap-5 h-64">
             <div className="h-full">
               <Textarea
-                className="h-[90%]"
+                className="h-[100%]"
                 value={jobDescription}
                 onChange={(value) => setJobDescription(value.target.value)}
               />
               <p className="mt-1 text-red-800">{error}</p>
             </div>
+            <div className="flex flex-col gap-1">
+              <p className="font-mono text-xs">
+                You can use your own candidate base, If no file is uploaded,
+                candidates in storage will be used
+              </p>
+              <Input type="file" onChange={handleFilePick} />
+            </div>
             <Button
-              disabled={!jobDescription.length || jobDescription.length < 30}
+              disabled={
+                (!jobDescription.length || jobDescription.length < 30) &&
+                !buttonDisabled
+              }
               className="hover:cursor-pointer"
               onClick={() => handleSubmit()}
             >
