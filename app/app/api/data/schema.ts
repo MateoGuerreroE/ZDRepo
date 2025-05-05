@@ -1,38 +1,26 @@
+import { boolean, json, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import {
-  boolean,
-  integer,
-  json,
-  pgTable,
-  text,
-  timestamp,
-} from "drizzle-orm/pg-core";
-import {
+  Candidate,
   IEducationData,
   IExperienceData,
   IQuestionData,
-  IRawJobData,
 } from "../types";
-import { IScoringDetails } from "../types/scoring";
+import { RawScoring } from "../types/scoring";
 
 export const candidatesTable = pgTable("candidates", {
   candidateId: text("candidateId").primaryKey(),
   candidateName: text("candidateName").notNull(),
+  appliedAt: text("appliedAt").notNull(),
   experience: json().notNull().$type<IExperienceData[]>(),
   education: json().notNull().$type<IEducationData[]>(),
   skills: json().notNull().$type<string[]>(),
   disqualified: boolean().notNull(),
   questions: json().notNull().$type<IQuestionData[]>(),
-  jobData: json().notNull().$type<IRawJobData>(),
 });
 
 export const scoreTable = pgTable("scores", {
-  scoringId: text("scoringId").primaryKey(),
+  jobId: text("jobId").notNull(),
   scoredAt: timestamp("scoredAt").notNull().defaultNow(),
-  generalScoring: integer("generalScoring").notNull(),
-  scoringDetails: json().notNull().$type<IScoringDetails>(),
-  highlights: text("highlights").notNull(),
-  jobHash: text("jobHash").notNull(),
-  candidateId: text("candidateId")
-    .notNull()
-    .references(() => candidatesTable.candidateId),
+  candidates: json().notNull().$type<Candidate[]>(),
+  scores: json().notNull().$type<RawScoring[]>(),
 });

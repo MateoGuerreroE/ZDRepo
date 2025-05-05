@@ -1,3 +1,19 @@
+export type RedisCredentials = {
+  host: string;
+  port: number;
+};
+
+export type NormalizedCandidateData = {
+  candidateId?: string;
+  candidateName: string;
+  experience: IExperienceData[];
+  education: IEducationData[];
+  appliedAt: string;
+  skills: string[];
+  disqualified: boolean;
+  questions: IQuestionData[];
+};
+
 export interface IEducationData {
   institution: string | null;
   title: string | null;
@@ -58,14 +74,3 @@ export interface IRawCandidateData extends Record<string, string | null> {
   question7: string | null;
   answer7: string | null;
 }
-
-export type NormalizedCandidateData = {
-  candidateId?: string;
-  candidateName: string;
-  experience: IExperienceData[];
-  education: IEducationData[];
-  skills: string[];
-  disqualified: boolean;
-  questions: IQuestionData[];
-  jobData: IRawJobData;
-};

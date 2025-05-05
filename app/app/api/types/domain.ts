@@ -1,5 +1,8 @@
-import { NormalizedCandidateData } from "./sheets";
+import { NormalizedCandidateData } from "./app";
 
+/**
+ * @deprecated JD won't need to be inferred from the job title anymore.
+ */
 export interface IJobData {
   jobTitle: string;
   jobTags: string[];
@@ -15,9 +18,8 @@ export interface IExperienceRequirements {
   years: number;
 }
 
-export type Candidate = Omit<NormalizedCandidateData, "jobData"> & {
+export type Candidate = NormalizedCandidateData & {
   candidateId: string;
-  jobApplied: string;
 };
 
 export interface ProcessedData {

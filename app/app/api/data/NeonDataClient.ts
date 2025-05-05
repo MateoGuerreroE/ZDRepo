@@ -1,9 +1,9 @@
 import { drizzle, NeonHttpDatabase } from "drizzle-orm/neon-http";
-import { ConfigService } from "../services/Config.service";
+import { configService } from "../services/Config.service";
 
-export class DataClient {
+export class NeonDataClient {
   readonly client: NeonHttpDatabase;
-  constructor(readonly configService: ConfigService) {
+  constructor() {
     const dataSource = configService.getDataSource();
     this.client = drizzle(dataSource);
   }

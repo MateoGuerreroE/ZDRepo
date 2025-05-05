@@ -17,7 +17,7 @@ export function buildJobDescription(jobInfo: IJobData): string {
   return description;
 }
 
-export function hashJobDescription(jd: string): string {
+export function hashString(jd: string): string {
   return crypto.createHash("md5").update(jd, "utf8").digest("hex");
 }
 
@@ -33,4 +33,15 @@ export function getNextBatch<T>(elements: T[], batchSize: number): T[] {
   elements.splice(0, batchSize);
 
   return batch;
+}
+
+export function splitInBatches<T>(elements: T[], batchSize: number): T[][] {
+  const batches: T[][] = [];
+
+  while (elements.length > 0) {
+    const batch = getNextBatch(elements, batchSize);
+    batches.push(batch);
+  }
+
+  return batches;
 }

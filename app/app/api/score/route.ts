@@ -1,38 +1,48 @@
-import { NextRequest } from "next/server";
-import { CandidateScoringService } from "../services/CandidateScoring.service";
-import { DataProcessingService } from "../services/DataProcessingService";
-import { DataSourceEnum } from "../types";
-import { DataSourceConnector } from "../utils/DataSourceConnector";
+import { NextRequest, NextResponse } from "next/server";
+import { CandidateScoringHandler } from "../services/CandidateScoring.handler";
+import { logger } from "../utils";
+import { AppException } from "../types/exceptions";
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
+  let jobDescription: string;
+  let fileContent: string | undefined = undefined;
+  const save = req.nextUrl.searchParams.get("saveCandidates");
+
   try {
-    const { jobDescription } = await request.json();
+    const contentType = req.headers.get("content-type") || "";
 
-    if (!jobDescription || jobDescription.length > 200) {
-      throw new Error("Invalid job description");
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      jobDescription = formData.get("jobDescription") as string;
+      const file = formData.get("file") as File;
+
+      if (file) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        fileContent = buffer.toString("utf-8");
+      }
+    } else {
+      const body = await req.json();
+      jobDescription = body.jobDescription;
     }
 
-    const dataSource = DataSourceConnector.getDataSource(
-      DataSourceEnum.POSTGRES
-    );
-    const processor = new DataProcessingService(dataSource);
-    const scoringService = new CandidateScoringService();
+    if (!jobDescription || jobDescription.length > 200) {
+      return NextResponse.json(
+        { message: "Invalid job description" },
+        { status: 400 }
+      );
+    }
 
-    const candidates = await processor.processCandidates();
-    const result = await scoringService.scoreCandidates(
+    const result = await CandidateScoringHandler.handleRequest(
       jobDescription,
-      candidates
+      fileContent,
+      save === "true"
     );
-
-    return new Response(JSON.stringify({ data: result }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    const message = (e as Error).message || "Internal error";
-    return new Response(JSON.stringify({ data: message }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ data: result });
+  } catch (err) {
+    logger.error((err as Error).message);
+    return NextResponse.json(
+      { message: (err as Error).message },
+      { status: err instanceof AppException ? 400 : 500 }
+    );
   }
 }

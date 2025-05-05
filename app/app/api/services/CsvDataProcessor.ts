@@ -9,14 +9,15 @@ import {
   IExperienceData,
   IQuestionData,
   IRawCandidateData,
-  NormalizedCandidateData,
-} from "../types/sheets";
+} from "../types";
+import { hashString } from "../utils/DomainUtils";
+import { Candidate } from "../types";
 
-export class SheetDataProcessor {
-  static parseToRawJson(
+export class CsvDataProcessor {
+  private static parseToRawJson(
     spreadSheetsData: string[][]
-  ): Record<string, string | null>[] {
-    const headers = normalizeHeaders(spreadSheetsData[0]);
+  ): IRawCandidateData[] {
+    const headers = normalizeHeaders<IRawCandidateData>(spreadSheetsData[0]);
     const rows = spreadSheetsData.slice(1);
 
     return rows.map((row) => {
@@ -26,21 +27,30 @@ export class SheetDataProcessor {
       });
       // Force casting
       return rowData;
-    });
+    }) as IRawCandidateData[];
   }
 
-  static processData(data: IRawCandidateData[]): NormalizedCandidateData[] {
-    return data.map((row) => {
-      const { educations, experiences, skills, name, disqualified, ...info } =
-        row;
+  static processData(data: string[][]): Candidate[] {
+    const jsonData = this.parseToRawJson(data);
+
+    return jsonData.map((row) => {
+      const {
+        educations,
+        experiences,
+        skills,
+        name,
+        disqualified,
+        creationTime,
+      } = row;
       return {
+        candidateId: hashString(name + row.creationTime),
         candidateName: name,
+        appliedAt: creationTime,
         skills: skills ? skills.split("|").map((s) => s.trim()) : [],
         education: this.parseEducationData(educations),
         experience: this.parseExperienceData(experiences),
         disqualified: disqualified === "Yes",
         questions: this.parseQuestionData(row),
-        jobData: info,
       };
     });
   }
