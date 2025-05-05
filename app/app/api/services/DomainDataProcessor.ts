@@ -1,6 +1,6 @@
-import { nanoid } from "nanoid";
 import { IScoreResult, RawScoring, ScoringInfo } from "../types/scoring";
 import { Candidate } from "../types";
+import { hashString } from "../utils";
 
 export class DomainDataProcessor {
   static processScores(
@@ -29,7 +29,7 @@ export class DomainDataProcessor {
 
       return {
         candidateId,
-        scoringId: nanoid(),
+        scoringId: hashString(highlights),
         generalScoring: totalScore,
         scoredAt: new Date(),
         scoringDetails,

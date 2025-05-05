@@ -2,6 +2,7 @@ import { IJobData } from "../types/domain";
 import * as crypto from "crypto";
 import { AppException } from "../types/exceptions";
 
+/** @deprecated not included in unit testing */
 export function buildJobDescription(jobInfo: IJobData): string {
   const { jobTitle, jobTags, department, headline, experienceRequirements } =
     jobInfo;

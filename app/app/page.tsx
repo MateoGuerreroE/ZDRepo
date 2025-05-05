@@ -40,7 +40,7 @@ export default function Home() {
             clearInterval(interval);
             return prev;
           }
-          return prev + 10;
+          return prev + 5;
         });
       }, 15000); // every 15 seconds
     }
@@ -203,7 +203,11 @@ export default function Home() {
             ) : (
               <div className="p-5 italic">
                 {errorResult ? (
-                  <p className="text-red-800">{errorResult}</p>
+                  <p className="text-red-800">
+                    Error: {errorResult}. Did this happened after a long wait?
+                    Give It a second try! Sometimes jobs stall (we are solving
+                    that) but processed results are stored.
+                  </p>
                 ) : (
                   <p className="text-center">
                     There are no results yet. Load a job description, press the

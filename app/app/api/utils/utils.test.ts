@@ -6,8 +6,58 @@ import {
   extractTitleAndInstitution,
   normalizeHeaders,
 } from "./CsvUtils";
+import { logger } from "./Logger";
+import * as crypto from "crypto";
+import {
+  getNextBatch,
+  hashString,
+  safeFetch,
+  splitInBatches,
+} from "./DomainUtils";
+import { AppException } from "../types/exceptions";
 
-describe("SheetUtils", () => {
+describe("logger", () => {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const originalError = console.error;
+  const originalDebug = console.debug;
+
+  beforeEach(() => {
+    console.log = jest.fn();
+    console.warn = jest.fn();
+    console.error = jest.fn();
+    console.debug = jest.fn();
+  });
+
+  afterEach(() => {
+    console.log = originalLog;
+    console.warn = originalWarn;
+    console.error = originalError;
+    console.debug = originalDebug;
+  });
+
+  it("should log info messages", () => {
+    logger.info("Test info");
+    expect(console.log).toHaveBeenCalledWith("[INFO]: Test info");
+  });
+
+  it("should log warning messages", () => {
+    logger.warn("Test warning");
+    expect(console.warn).toHaveBeenCalledWith("[WARN]: Test warning");
+  });
+
+  it("should log error messages", () => {
+    logger.error("Test error");
+    expect(console.error).toHaveBeenCalledWith("[ERROR]: Test error");
+  });
+
+  it("should log debug messages", () => {
+    logger.debug("Test debug");
+    expect(console.debug).toHaveBeenCalledWith("[DEBUG]: Test debug");
+  });
+});
+
+describe("CsvUtils", () => {
   it("should normalize headers correctly", () => {
     const headers = ["First Name", "Last Name", "Email Address"];
     const normalizedHeaders = normalizeHeaders<unknown>(headers);
@@ -64,5 +114,94 @@ describe("SheetUtils", () => {
     const { title, institution } = extractTitleAndInstitution(input);
     expect(title).toEqual("Software Engineer");
     expect(institution).toEqual(null);
+  });
+});
+
+describe("DomainUtils", () => {
+  describe("hashString", () => {
+    it("should return md5 hash of the input string", () => {
+      const result = hashString("test-input");
+      const expected = crypto
+        .createHash("md5")
+        .update("test-input", "utf8")
+        .digest("hex");
+      expect(result).toBe(expected);
+    });
+  });
+
+  describe("getNextBatch", () => {
+    it("should return first N elements and mutate the array", () => {
+      const arr = [1, 2, 3, 4, 5];
+      const batch = getNextBatch(arr, 2);
+      expect(batch).toEqual([1, 2]);
+      expect(arr).toEqual([3, 4, 5]);
+    });
+
+    it("should return all elements if batchSize is larger than array", () => {
+      const arr = [1, 2];
+      const batch = getNextBatch(arr, 5);
+      expect(batch).toEqual([1, 2]);
+      expect(arr).toEqual([]);
+    });
+
+    it("should return empty array if input is empty", () => {
+      const arr: number[] = [];
+      const batch = getNextBatch(arr, 3);
+      expect(batch).toEqual([]);
+      expect(arr).toEqual([]);
+    });
+  });
+
+  describe("splitInBatches", () => {
+    it("should split array into multiple batches", () => {
+      const arr = [1, 2, 3, 4, 5];
+      const batches = splitInBatches(arr, 2);
+      expect(batches).toEqual([[1, 2], [3, 4], [5]]);
+    });
+
+    it("should return single batch if batchSize >= array length", () => {
+      const arr = [1, 2, 3];
+      const batches = splitInBatches(arr, 5);
+      expect(batches).toEqual([[1, 2, 3]]);
+    });
+
+    it("should return empty array if input is empty", () => {
+      const arr: number[] = [];
+      const batches = splitInBatches(arr, 3);
+      expect(batches).toEqual([]);
+    });
+  });
+
+  describe("safeFetch", () => {
+    const originalFetch = global.fetch;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      global.fetch = jest.fn();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      global.fetch = originalFetch;
+    });
+
+    it("should resolve if fetch is fast enough", async () => {
+      const mockResponse = new Response(JSON.stringify({ data: "ok" }), {
+        status: 200,
+      });
+      (fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await safeFetch("http://test.com");
+      expect(result.status).toBe(200);
+    });
+
+    it("should timeout and throw AppException", async () => {
+      (fetch as jest.Mock).mockImplementation(() => new Promise(() => {})); // never resolves
+
+      const promise = safeFetch("http://slow.com", {}, 1000);
+      jest.advanceTimersByTime(1000);
+
+      await expect(promise).rejects.toThrow(AppException);
+    });
   });
 });

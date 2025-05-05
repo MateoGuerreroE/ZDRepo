@@ -65,7 +65,7 @@ export class ConfigService {
   }
 
   getRedisCredentials(): RedisCredentials {
-    const host = process.env.REDIS_HOST || "localhost";
+    const host = process.env.REDIS_HOST;
     const port = process.env.REDIS_PORT
       ? parseInt(process.env.REDIS_PORT)
       : 6379;
@@ -78,7 +78,7 @@ export class ConfigService {
     }
 
     return {
-      host,
+      host: host || "localhost",
       port,
     };
   }
