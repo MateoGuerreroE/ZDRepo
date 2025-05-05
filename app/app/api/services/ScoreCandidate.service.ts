@@ -105,6 +105,15 @@ export class ScoreCandidateService {
         }),
       });
 
+      if (process.env.LOG_LEVEL === "debug") {
+        const bodyResponse = await response.json();
+        logger.info(
+          `Batch of ${batch.length} processed. Response: ${JSON.stringify(
+            bodyResponse
+          )}`
+        );
+      }
+
       const { result } = await response.json();
 
       if (!result || !Array.isArray(result.candidates)) {

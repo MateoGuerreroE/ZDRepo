@@ -1,10 +1,12 @@
 # ZD Recruitment Assistant
 
+NOTE: Current main is version V2 (Which is the one deployed on Vercel + AWS). If you want to see progress until submission deadline, go to branch may-2-2025.
+
 Hey! This is a tool for matching candidates with job descriptions. Using Generative AI to do a first-screening of candidate information and giving main recruiter a score based in the provided information by the candidate.
 
-Based on the information received, information was loaded to a database, but main source can be extended to use SpreadSheets API (Or any other DB). However, for further interaction there won't be need of any sheet since all information lays in database now.
+Based on the information received, information was loaded to a database, but main source can be extended to use CSV files loaded from local machine. So just write a long enough job description on the text area and wait for your results. For version v2 (deployed) a redis job processing system was implemented to "bypass" vercel gateway limit of 60 seconds. Note that, when using database results, jobs can take up to 2+ minutes to process all candidates, so be patient :)
 
-## How It works?
+## How It works? (v1)
 
 Project has two services
 
