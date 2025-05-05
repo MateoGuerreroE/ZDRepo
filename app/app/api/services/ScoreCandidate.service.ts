@@ -20,7 +20,8 @@ export class ScoreCandidateService {
     candidates: Candidate[]
   ): Promise<IScoreResult[] | string> {
     if (this.redisClient.hasClient) {
-      return this.jobProcessing(jobDescription, candidates);
+      this.jobProcessing(jobDescription, candidates);
+      return hashString(jobDescription);
     } else {
       const scoreData = await this.rawProcessing(jobDescription, candidates);
       return DomainDataProcessor.processScores(candidates, scoreData);
@@ -83,7 +84,7 @@ export class ScoreCandidateService {
     await this.redisClient.setFinishedBatches(jobId, 0);
 
     for (const batch of batches) {
-      this.processBatchAsync(jd, batch, jobId);
+      await this.processBatchAsync(jd, batch, jobId);
     }
 
     return jobId;
@@ -102,7 +103,9 @@ export class ScoreCandidateService {
       };
       if (process.env.LOG_LEVEL === "debug") {
         logger.info(
-          `Requesting to LLM service with: ${JSON.stringify(batchBody)}`
+          `Requesting to LLM service with: ${JSON.stringify(batchBody)}, to: ${
+            this.llmUrl
+          }`
         );
       }
 
