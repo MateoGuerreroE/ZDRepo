@@ -3,10 +3,10 @@ import { CandidateScoringHandler } from "../services/CandidateScoring.handler";
 
 export async function POST(req: NextRequest) {
   try {
-    const params = await req.json();
+    const body = await req.json();
 
-    const jobId = params.jobId || undefined;
-    const candidates = params.candidates || undefined;
+    const jobId = body.jobId || undefined;
+    const candidates = body.candidates || undefined;
     if (!jobId || !candidates) {
       return NextResponse.json("Missing required information", { status: 400 });
     }

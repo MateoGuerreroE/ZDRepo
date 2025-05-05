@@ -15,14 +15,17 @@ export class RedisClient {
   async init() {
     const { host, port } = configService.getRedisCredentials();
     const redisUrl = `redis://${host}:${port}`;
-    console.log(redisUrl);
     const client = new Redis(redisUrl, {
       retryStrategy: () => null,
       lazyConnect: true,
     });
 
+    client.on("error", () => {
+      logger.debug("No redis instance found");
+    });
     try {
       await client.connect();
+
       this.client = client;
       this.hasClient = true;
     } catch {
@@ -91,10 +94,18 @@ export class RedisClient {
     return jobData;
   }
 
+  /**
+   * When clearing a job (only when results were already extracted and saved on db)
+   * This will also give a short ttl for status and results so they can be fetched
+   * but not stored for long time.
+   */
   async clearJob(jobKey: string): Promise<void> {
     if (!this.hasClient || !this.client)
       throw new AppException("Redis client not available");
-    await this.client.del(jobKey);
+    await this.client.expire(`${jobKey}:results`, this.jobTTL);
+    await this.client.del(`${jobKey}:status`);
+    await this.client.del(`${jobKey}:total`);
+    await this.client.del(`${jobKey}:finished`);
   }
 
   async setTotalBatches(jobKey: string, total: number): Promise<void> {

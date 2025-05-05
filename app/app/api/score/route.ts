@@ -6,6 +6,7 @@ import { AppException } from "../types/exceptions";
 export async function POST(req: NextRequest) {
   let jobDescription: string;
   let fileContent: string | undefined = undefined;
+  const save = req.nextUrl.searchParams.get("saveCandidates");
 
   try {
     const contentType = req.headers.get("content-type") || "";
@@ -33,7 +34,8 @@ export async function POST(req: NextRequest) {
 
     const result = await CandidateScoringHandler.handleRequest(
       jobDescription,
-      fileContent
+      fileContent,
+      save === "true"
     );
     return NextResponse.json({ data: result });
   } catch (err) {

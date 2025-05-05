@@ -8,6 +8,7 @@ export type NormalizedCandidateData = {
   candidateName: string;
   experience: IExperienceData[];
   education: IEducationData[];
+  appliedAt: string;
   skills: string[];
   disqualified: boolean;
   questions: IQuestionData[];

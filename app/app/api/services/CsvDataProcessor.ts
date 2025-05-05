@@ -34,10 +34,18 @@ export class CsvDataProcessor {
     const jsonData = this.parseToRawJson(data);
 
     return jsonData.map((row) => {
-      const { educations, experiences, skills, name, disqualified } = row;
+      const {
+        educations,
+        experiences,
+        skills,
+        name,
+        disqualified,
+        creationTime,
+      } = row;
       return {
-        candidateId: hashString(name),
+        candidateId: hashString(name + row.creationTime),
         candidateName: name,
+        appliedAt: creationTime,
         skills: skills ? skills.split("|").map((s) => s.trim()) : [],
         education: this.parseEducationData(educations),
         experience: this.parseExperienceData(experiences),

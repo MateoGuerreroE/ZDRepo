@@ -6,21 +6,23 @@ import { getNextBatch, hashString, splitInBatches } from "../utils/DomainUtils";
 import { logger } from "../utils/Logger";
 import { configService } from "./Config.service";
 import { DomainDataProcessor } from "./DomainDataProcessor";
+import { NeonDataSource } from "./NeonDataSource";
 
 export class ScoreCandidateService {
   private llmUrl: string = configService.getLLMServiceUrl();
-  constructor(private readonly redisClient: RedisClient) {}
+  constructor(
+    private readonly redisClient: RedisClient,
+    private readonly dataSource: NeonDataSource
+  ) {}
 
   async scoreCandidates(
     jobDescription: string,
     candidates: Candidate[]
   ): Promise<IScoreResult[] | string> {
-    let scoreData: RawScoring[] | string;
-
     if (this.redisClient.hasClient) {
       return this.jobProcessing(jobDescription, candidates);
     } else {
-      scoreData = await this.rawProcessing(jobDescription, candidates);
+      const scoreData = await this.rawProcessing(jobDescription, candidates);
       return DomainDataProcessor.processScores(candidates, scoreData);
     }
   }
@@ -33,12 +35,13 @@ export class ScoreCandidateService {
     candidates: Candidate[]
   ): Promise<RawScoring[]> {
     const candidateScores: RawScoring[] = [];
+    const candidateCopy = [...candidates];
     logger.info(
-      `Processing ${candidates.length} candidates in raw mode. Note this may take a while and timeout`
+      `Processing ${candidates.length} candidates in raw mode. Note this may take a while`
     );
 
-    while (candidates.length > 0) {
-      const batch = getNextBatch(candidates, 10); // Process in batches of 10
+    while (candidateCopy.length > 0) {
+      const batch = getNextBatch(candidateCopy, 10); // Process in batches of 10
 
       const request = await fetch(this.llmUrl, {
         method: "POST",
@@ -55,6 +58,11 @@ export class ScoreCandidateService {
       const { result: requestResult } = await request.json();
       candidateScores.push(...requestResult.candidates);
     }
+    await this.dataSource.saveResult(
+      hashString(jd),
+      candidates,
+      candidateScores
+    );
     return candidateScores;
   }
 
