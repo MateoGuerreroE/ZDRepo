@@ -1,5 +1,6 @@
 import { IJobData } from "../types/domain";
 import * as crypto from "crypto";
+import { AppException } from "../types/exceptions";
 
 export function buildJobDescription(jobInfo: IJobData): string {
   const { jobTitle, jobTags, department, headline, experienceRequirements } =
@@ -46,16 +47,15 @@ export function splitInBatches<T>(elements: T[], batchSize: number): T[][] {
   return batches;
 }
 
-export async function fetchWithTimeout(
-  resource: string,
-  options: Record<string, unknown> = {},
-  timeout = 15000
+export async function safeFetch(
+  url: string,
+  options: RequestInit = {},
+  timeout = 20000
 ): Promise<Response> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeout);
-
-  return fetch(resource, {
-    ...options,
-    signal: controller.signal,
-  }).finally(() => clearTimeout(id));
+  return Promise.race([
+    fetch(url, options),
+    new Promise<Response>((_, reject) =>
+      setTimeout(() => reject(new AppException("Timeout in fetch")), timeout)
+    ),
+  ]);
 }

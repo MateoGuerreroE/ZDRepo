@@ -3,7 +3,7 @@ import { Candidate } from "../types";
 import { AppException } from "../types/exceptions";
 import { IScoreResult, RawScoring } from "../types/scoring";
 import {
-  fetchWithTimeout,
+  safeFetch,
   getNextBatch,
   hashString,
   splitInBatches,
@@ -89,7 +89,18 @@ export class ScoreCandidateService {
     await this.redisClient.setFinishedBatches(jobId, 0);
 
     for (const batch of batches) {
-      await this.processBatchAsync(jd, batch, jobId);
+      try {
+        await this.processBatchAsync(jd, batch, jobId);
+      } catch (err) {
+        logger.warn(`Retrying batch due to error: ${err}`);
+        try {
+          await this.processBatchAsync(jd, batch, jobId);
+        } catch (err) {
+          logger.error(`Batch failed after retry: ${err}`);
+          await this.redisClient.setJobStatus(jobId, "failed");
+          await this.redisClient.clearJob(jobId);
+        }
+      }
     }
 
     return jobId;
@@ -112,7 +123,7 @@ export class ScoreCandidateService {
           `Processing batch of ${batch.length} candidates. Job ID: ${jobId}`
         );
       }
-      const response = await fetchWithTimeout(this.llmUrl, {
+      const response = await safeFetch(this.llmUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(batchBody),
@@ -140,8 +151,7 @@ export class ScoreCandidateService {
       }
     } catch (err) {
       logger.error(`Batch processing error ${err}`);
-      await this.redisClient.setJobStatus(jobId, "failed");
-      await this.redisClient.clearJob(jobId);
+      throw err;
     }
   }
 
