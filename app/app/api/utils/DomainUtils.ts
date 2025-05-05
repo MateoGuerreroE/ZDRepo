@@ -45,3 +45,17 @@ export function splitInBatches<T>(elements: T[], batchSize: number): T[][] {
 
   return batches;
 }
+
+export async function fetchWithTimeout(
+  resource: string,
+  options: Record<string, unknown> = {},
+  timeout = 15000
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  return fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  }).finally(() => clearTimeout(id));
+}

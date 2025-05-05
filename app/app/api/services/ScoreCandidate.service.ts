@@ -2,7 +2,12 @@ import { RedisClient } from "../data";
 import { Candidate } from "../types";
 import { AppException } from "../types/exceptions";
 import { IScoreResult, RawScoring } from "../types/scoring";
-import { getNextBatch, hashString, splitInBatches } from "../utils/DomainUtils";
+import {
+  fetchWithTimeout,
+  getNextBatch,
+  hashString,
+  splitInBatches,
+} from "../utils/DomainUtils";
 import { logger } from "../utils/Logger";
 import { configService } from "./Config.service";
 import { DomainDataProcessor } from "./DomainDataProcessor";
@@ -101,15 +106,13 @@ export class ScoreCandidateService {
         jobDescription: jd,
         candidates: batch,
       };
+
       if (process.env.LOG_LEVEL === "debug") {
         logger.info(
-          `Requesting to LLM service with: ${JSON.stringify(batchBody)}, to: ${
-            this.llmUrl
-          }`
+          `Processing batch of ${batch.length} candidates. Job ID: ${jobId}`
         );
       }
-
-      const response = await fetch(this.llmUrl, {
+      const response = await fetchWithTimeout(this.llmUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(batchBody),
