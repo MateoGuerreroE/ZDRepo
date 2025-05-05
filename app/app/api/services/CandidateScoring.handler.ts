@@ -127,7 +127,7 @@ export class CandidateScoringHandler {
       }
 
       if (jobStatus === "failed") {
-        this.redisClient.clearJob(jobId);
+        await this.redisClient.clearJob(jobId);
         throw new AppException("Job failed");
       }
 

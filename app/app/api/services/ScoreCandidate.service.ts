@@ -95,22 +95,26 @@ export class ScoreCandidateService {
     jobId: string
   ) {
     try {
+      const batchBody = {
+        job: hashString(jd),
+        jobDescription: jd,
+        candidates: batch,
+      };
+      if (process.env.LOG_LEVEL === "debug") {
+        logger.info(
+          `Requesting to LLM service with: ${JSON.stringify(batchBody)}`
+        );
+      }
+
       const response = await fetch(this.llmUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          job: "",
-          jobDescription: jd,
-          candidates: batch,
-        }),
+        body: JSON.stringify(batchBody),
       });
 
       if (process.env.LOG_LEVEL === "debug") {
-        const bodyResponse = await response.json();
         logger.info(
-          `Batch of ${batch.length} processed. Response: ${JSON.stringify(
-            bodyResponse
-          )}`
+          `Batch of ${batch.length} processed. Response status: ${response.status}, ${response.statusText}`
         );
       }
 
@@ -131,6 +135,7 @@ export class ScoreCandidateService {
     } catch (err) {
       logger.error(`Batch processing error ${err}`);
       await this.redisClient.setJobStatus(jobId, "failed");
+      await this.redisClient.clearJob(jobId);
     }
   }
 

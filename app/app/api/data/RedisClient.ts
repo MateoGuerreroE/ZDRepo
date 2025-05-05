@@ -103,7 +103,7 @@ export class RedisClient {
     if (!this.hasClient || !this.client)
       throw new AppException("Redis client not available");
     await this.client.expire(`${jobKey}:results`, this.jobTTL);
-    await this.client.del(`${jobKey}:status`);
+    await this.client.expire(`${jobKey}:status`, 15);
     await this.client.del(`${jobKey}:total`);
     await this.client.del(`${jobKey}:finished`);
   }
